@@ -1,0 +1,23 @@
+{
+  "name": "msa-bankbot",
+  "version": "1.0.0",
+  "description": "A bot application for usage in online banking (MSA assessment)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dbedggood/MSA-BankBot.git"
+  },
+  "author": "Daniel Bedggood",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dbedggood/MSA-BankBot/issues"
+  },
+  "homepage": "https://github.com/dbedggood/MSA-BankBot#readme",
+  "dependencies": {
+    "botbuilder": "^3.12.0",
+    "restify": "^6.3.4"
+  }
+}
