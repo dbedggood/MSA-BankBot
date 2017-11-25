@@ -1,9 +1,9 @@
 var builder = require('botbuilder');
 
 exports.startDialog = function (bot) {
-    
+
     var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/84985f51-d322-4b83-a441-b3f490c41e22?subscription-key=0ccd28813dc54c33a936be746348319f&verbose=true&timezoneOffset=720&q=');
-    
+
     bot.recognizer(recognizer);
 
     bot.dialog('greet', function (session, args) {
@@ -11,7 +11,7 @@ exports.startDialog = function (bot) {
     }).triggerAction({
         matches: 'greet'
     });
-    
+
     bot.dialog('checkBalance', function (session, args) {
         session.send("Retrieving balances...")
     }).triggerAction({
@@ -35,9 +35,9 @@ exports.startDialog = function (bot) {
     }).triggerAction({
         matches: 'farewell'
     });
-    
+
     bot.dialog('transferMoney', function (session, args) {
-        console.log(args.intent.entities);        
+        console.log(args.intent.entities);
         var moneyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.number');
         var accountEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'account');
 
@@ -57,7 +57,7 @@ exports.startDialog = function (bot) {
         console.log('\n');
         var moneyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.number');
         var peopleEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'people');
-        
+
         if (moneyEntity != null && peopleEntity != null) {
             session.send('Sending $%d to %s...', moneyEntity.entity, peopleEntity.entity);
         } else {
