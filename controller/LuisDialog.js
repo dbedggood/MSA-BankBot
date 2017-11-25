@@ -6,7 +6,16 @@ var analyse = function(session, reply) {
         if (result > 0.3) {
             session.send(reply);
         } else {
-            session.send('I\'m sorry if you are upset, would you like me to direct you to live support?');
+            var msg = new builder.Message(session)
+            .text('I\'m sorry if you are upset, would you like me to direct you to live support?')
+            .suggestedActions(
+                builder.SuggestedActions.create(
+                        session, [
+                            builder.CardAction.postBack(session, "I need help", "Yes"),
+                            builder.CardAction.postBack(session, "no", "No"),
+                        ]
+                    ));
+            session.send(msg);
         }
     })
 }
@@ -18,13 +27,27 @@ exports.startDialog = function (bot) {
     bot.recognizer(recognizer);
 
     bot.dialog('greet', function (session, args) {
+        session.sendTyping();
         var reply = 'Hello!';
         analyse(session, reply);    
     }).triggerAction({
         matches: 'greet'
     });
 
+    bot.dialog('anythingElse', function (session, args) {
+        session.sendTyping();
+        if (!session.conversationData.repeat) {
+            session.conversationData.repeat = true;
+            session.send('Okay, is there anything else I can help you with?');
+        } else {
+            session.send('Alright.');
+        }
+    }).triggerAction({
+        matches: 'negative'
+    });
+
     bot.dialog('checkBalance', function (session, args) {
+        session.sendTyping();
         var reply = 'Retrieving balances...';
         analyse(session, reply);    
     }).triggerAction({
@@ -32,6 +55,7 @@ exports.startDialog = function (bot) {
     });
 
     bot.dialog('forgotPassword', function (session, args) {
+        session.sendTyping();
         var reply = 'Do you want to reset your password?!';
         analyse(session, reply);
     }).triggerAction({
@@ -39,12 +63,14 @@ exports.startDialog = function (bot) {
     });
 
     bot.dialog('requestSupport', function (session, args) {
+        session.sendTyping();
         session.send('Fetching live support...');
     }).triggerAction({
         matches: 'requestSupport'
     });
 
     bot.dialog('farewell', function (session, args) {
+        session.sendTyping();
         var reply = 'Goodbye!';
         analyse(session, reply)
     }).triggerAction({
@@ -52,6 +78,7 @@ exports.startDialog = function (bot) {
     });
 
     bot.dialog('transferMoney', function (session, args) {
+        session.sendTyping();
         var moneyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.number');
         var accountEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'account');
 
@@ -64,7 +91,8 @@ exports.startDialog = function (bot) {
         matches: 'transferMoney'
     });
 
-    bot.dialog('sendMoney', function (session, args) {   
+    bot.dialog('sendMoney', function (session, args) {
+        session.sendTyping();
         var moneyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.number');
         var peopleEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'people');
 

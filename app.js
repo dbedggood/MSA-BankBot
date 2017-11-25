@@ -15,7 +15,37 @@ var connector = new builder.ChatConnector({
 server.post('/api/messages', connector.listen());
 
 var bot = new builder.UniversalBot(connector, function (session) {
+    session.sendTyping();
     session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+});
+
+bot.on('conversationUpdate', function (message) {
+    if (message.membersAdded) {
+        message.membersAdded.forEach(function (identity) {
+            if (identity.id === message.address.bot.id) {
+                
+                var welc1 = new builder.Message()
+                .address(message.address)
+                .text('Welcome!')
+                bot.send(welc1);
+                
+                setTimeout(function(){
+                    var welc2 = new builder.Message()
+                    .address(message.address)
+                    .text('How can I help you today?')
+                    bot.send(welc2);
+                }, 1500);
+
+                setTimeout(function(){
+                    var welc3 = new builder.Message()
+                    .address(message.address)
+                    .text('I can do many things!')
+                    bot.send(welc3);
+                }, 3000);
+
+            }
+        });
+    }
 });
 
 luis.startDialog(bot);
