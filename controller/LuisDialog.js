@@ -1,12 +1,12 @@
 var builder = require('botbuilder');
 var analysis = require('./TextAnalytics');
 
-var analyse = function(input, session, reply) {
-    analysis(input, function(result) {
+var analyse = function(session, reply) {
+    analysis(session.message.text, function(result) {
         if (result > 0.3) {
             session.send(reply);
         } else {
-            session.send('I\'m sorry you are feeling upset, would you like me to fetch live support?');
+            session.send('I\'m sorry if you are upset, would you like me to direct you to live support?');
         }
     })
 }
@@ -19,21 +19,21 @@ exports.startDialog = function (bot) {
 
     bot.dialog('greet', function (session, args) {
         var reply = 'Hello!';
-        analyse(session.message.text, session, reply);    
+        analyse(session, reply);    
     }).triggerAction({
         matches: 'greet'
     });
 
     bot.dialog('checkBalance', function (session, args) {
         var reply = 'Retrieving balances...';
-        analyse(session.message.text, session, reply);    
+        analyse(session, reply);    
     }).triggerAction({
         matches: 'checkBalance'
     });
 
     bot.dialog('forgotPassword', function (session, args) {
         var reply = 'Do you want to reset your password?!';
-        analyse(session.message.text, session, reply);
+        analyse(session, reply);
     }).triggerAction({
         matches: 'forgotPassword'
     });
@@ -46,7 +46,7 @@ exports.startDialog = function (bot) {
 
     bot.dialog('farewell', function (session, args) {
         var reply = 'Goodbye!';
-        analyse(session.message.text, session, reply)
+        analyse(session, reply)
     }).triggerAction({
         matches: 'farewell'
     });
