@@ -10,7 +10,7 @@ exports.getAccBal = function getData(url, session, user, callback){
     });
 };
 
-exports.tempDelete = function deleteData(url, session, id, callback){
+exports.tempDelete = function deleteData(url, session, id, user, callback){
     var options = {
         url: url + "\\" + id,
         method: 'DELETE',

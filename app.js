@@ -34,15 +34,7 @@ bot.on('conversationUpdate', function (message) {
                     .address(message.address)
                     .text('How can I help you today?')
                     bot.send(welc2);
-                }, 1500);
-
-                setTimeout(function(){
-                    var welc3 = new builder.Message()
-                    .address(message.address)
-                    .text('I can do many things!')
-                    bot.send(welc3);
-                }, 3000);
-
+                }, 2000);
             }
         });
     }

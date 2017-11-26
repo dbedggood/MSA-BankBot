@@ -54,12 +54,13 @@ exports.startDialog = function (bot) {
         session.sendTyping();
         session.dialogData.args = args || {};
         if (!session.conversationData["username"]) {
-            builder.Prompts.text(session, "Enter a username to setup your account.");                
+            builder.Prompts.text(session, "Enter a username to login to your account.");                
         } else {
+            session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
             next();
         }
     },
-    function (session, results, next) {
+    function (session, results) {
 
         if (results.response) {
             session.conversationData["username"] = results.response;
@@ -96,23 +97,62 @@ exports.startDialog = function (bot) {
     });
 
 
-    bot.dialog('transferMoney', function (session, args) {
-        session.sendTyping();
-        var moneyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.number');
-        var accountEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'account');
+    // bot.dialog('transferMoney', function (session, args) {
+    //     session.sendTyping();
+    //     if (!session.conversationData["username"]) {
+    //         builder.Prompts.text(session, "Enter a username to setup your account.");      
+    //     }
+    //     var moneyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.number');
+    //     var accountEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'account');
 
-        if (moneyEntity != null && accountEntity != null) {
-
-            session.send('Transferring $%d to your %s account...', moneyEntity.entity, accountEntity.entity);
-            money.transfer(session, 'daniel', moneyEntity.entity, accountEntity.entity);
+    //     if (moneyEntity != null && accountEntity != null) {
+    //         session.send('Transferring $%d to your %s account...', moneyEntity.entity, accountEntity.entity);
+    //         money.transfer(session, session.conversationData["username"], moneyEntity.entity, accountEntity.entity);
 
             
-        } else {
-            session.send('TRANSFER ERROR moneyEntity=%d accountEntity=%s', moneyEntity.entity, accountEntity.entity);
-        }
-    }).triggerAction({
-        matches: 'transferMoney'
-    });
+    //     } else {
+    //         session.send('TRANSFER ERROR moneyEntity=%d accountEntity=%s', moneyEntity.entity, accountEntity.entity);
+    //     }
+    // }).triggerAction({
+    //     matches: 'transferMoney'
+    // });
+
+        bot.dialog('transferMoney', [ function (session, args, next) {
+            session.sendTyping();
+            session.dialogData.args = args || {};
+            if (!session.conversationData["username"]) {
+                builder.Prompts.text(session, "Enter a username to login to your account.");                
+            } else {
+                session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
+                next();
+            }
+        },
+        function (session, results) {
+            if (results.response) {
+                session.conversationData["username"] = results.response;
+            }
+            builder.Prompts.choice(session, "Which account do you want to transfer to?", "Cheque|Savings", { listStyle: 3 });
+        },
+        function (session, results) {
+            session.conversationData["accountType"] = results.response.entity;
+            builder.Prompts.number(session, "How much would you like to transfer?");
+        },
+        function (session, results) {
+            session.sendTyping();
+            session.send('Transferring $%d to your %s account...', results.response, session.conversationData["accountType"]);
+            money.transfer(session, session.conversationData["username"], results.response, session.conversationData["accountType"]);
+        }]).triggerAction({
+            matches: 'transferMoney'
+        });
+        
+        // if (moneyEntity != null && accountEntity != null) {
+        //     session.send('Transferring $%d to your %s account...', moneyEntity.entity, accountEntity.entity);
+        //     money.transfer(session, session.conversationData["username"], moneyEntity.entity, accountEntity.entity);
+
+            
+        // } else {
+        //     session.send('TRANSFER ERROR moneyEntity=%d accountEntity=%s', moneyEntity.entity, accountEntity.entity);
+        // }
 
     bot.dialog('sendMoney', function (session, args) {
         session.sendTyping();
