@@ -1,6 +1,6 @@
 var builder = require('botbuilder');
 var analysis = require('./TextAnalytics');
-var balance = require('./AccountBalance')
+var money = require('./HandleMoney')
 
 var analyse = function(session, reply) {
     analysis(session.message.text, function(result) {
@@ -27,6 +27,7 @@ exports.startDialog = function (bot) {
 
     bot.recognizer(recognizer);
 
+
     bot.dialog('greet', function (session, args) {
         session.sendTyping();
         var reply = 'Hello!';
@@ -34,6 +35,7 @@ exports.startDialog = function (bot) {
     }).triggerAction({
         matches: 'greet'
     });
+
 
     bot.dialog('anythingElse', function (session, args) {
         session.sendTyping();
@@ -47,6 +49,7 @@ exports.startDialog = function (bot) {
         matches: 'negative'
     });
 
+
     bot.dialog('checkBalance', [ function (session, args, next) {
         session.sendTyping();
         session.dialogData.args = args || {};
@@ -58,18 +61,16 @@ exports.startDialog = function (bot) {
     },
     function (session, results, next) {
 
-            if (results.response) {
-                session.conversationData["username"] = results.response;
-            }
-
-            session.send("Retrieving your account balances...");
-            balance.displayAccBal(session, session.conversationData["username"]);
+        if (results.response) {
+            session.conversationData["username"] = results.response;
         }
+        session.send("Retrieving your account balances...");
+        money.displayAccBal(session, session.conversationData["username"]);
 
-
-    ]).triggerAction({
+    }]).triggerAction({
         matches: 'checkBalance'
     });
+
 
     bot.dialog('forgotPassword', function (session, args) {
         session.sendTyping();
@@ -94,13 +95,18 @@ exports.startDialog = function (bot) {
         matches: 'farewell'
     });
 
+
     bot.dialog('transferMoney', function (session, args) {
         session.sendTyping();
         var moneyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.number');
         var accountEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'account');
 
         if (moneyEntity != null && accountEntity != null) {
+
             session.send('Transferring $%d to your %s account...', moneyEntity.entity, accountEntity.entity);
+            money.transfer(session, 'daniel', moneyEntity.entity, accountEntity.entity);
+
+            
         } else {
             session.send('TRANSFER ERROR moneyEntity=%d accountEntity=%s', moneyEntity.entity, accountEntity.entity);
         }
