@@ -1,5 +1,6 @@
 var builder = require('botbuilder');
 var analysis = require('./TextAnalytics');
+var balance = require('./AccountBalance')
 
 var analyse = function(session, reply) {
     analysis(session.message.text, function(result) {
@@ -46,11 +47,27 @@ exports.startDialog = function (bot) {
         matches: 'negative'
     });
 
-    bot.dialog('checkBalance', function (session, args) {
+    bot.dialog('checkBalance', [ function (session, args, next) {
         session.sendTyping();
-        var reply = 'Retrieving balances...';
-        analyse(session, reply);    
-    }).triggerAction({
+        session.dialogData.args = args || {};
+        if (!session.conversationData["username"]) {
+            builder.Prompts.text(session, "Enter a username to setup your account.");                
+        } else {
+            next();
+        }
+    },
+    function (session, results, next) {
+
+            if (results.response) {
+                session.conversationData["username"] = results.response;
+            }
+
+            session.send("Retrieving your account balances...");
+            balance.displayAccBal(session, session.conversationData["username"]);
+        }
+
+
+    ]).triggerAction({
         matches: 'checkBalance'
     });
 
