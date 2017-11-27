@@ -2,8 +2,10 @@ var rest = require('../API/RestClient');
 
 var url = 'https://bnkbt.azurewebsites.net/tables/accounts'
 var userGlobal;
+var recipientGlobal;
 var chequeGlobal;
 var savingsGlobal;
+var receiveGlobal;
 
 exports.displayAccBal = function getAccBal(session, user){
     var url = 'https://bnkbt.azurewebsites.net/tables/accounts';
@@ -57,7 +59,7 @@ exports.transfer = function transferMoney(session, user, amount, accountType){
                     savingsGlobal = Number(savingsReceived) + Number(amount);
                     console.log("ADDED TO SAVINGS");
                 }
-                rest.tempDelete(url, session, allAccounts[i].id, userGlobal, updateAccount);
+                rest.tempDelete(url, session, allAccounts[i].id, userGlobal, updateUserAccount);
 
             }
         }
@@ -66,10 +68,43 @@ exports.transfer = function transferMoney(session, user, amount, accountType){
 
 };
 
-function updateAccount(body, session, userGlobal){
-    console.log("TRANSFER DELETE");
-    rest.postChanges(url, userGlobal, chequeGlobal, savingsGlobal)
-    console.log('posted!!!??');
-    
-    
+exports.sendMoney = function sendMoney(session, user, amount, recipient){
+    var url  = 'https://bnkbt.azurewebsites.net/tables/accounts';
+    console.log("SEND begin");
+    rest.getAccBal(url, session, user, function(message, session, user){
+        var allAccounts = JSON.parse(message);
+        console.log("TRANSFER getdata");
+        console.log(recipient);
+
+        for(var i in allAccounts) {
+            console.log('iterate accounts: ' + allAccounts[i].account);
+            console.log('input: ' + user);
+            console.log('accountType: ' + recipient)
+
+            if (allAccounts[i].account.toLowerCase() === user.toLowerCase()) {
+                userGlobal = allAccounts[i].account.toLowerCase();
+                chequeGlobal = allAccounts[i].cheque - amount;
+                savingsGlobal = allAccounts[i].savings;
+                rest.tempDelete(url, session, allAccounts[i].id, userGlobal, updateUserAccount);
+
+            } else if (allAccounts[i].account.toLowerCase() === recipient.toLowerCase()) {
+                recipientGlobal = allAccounts[i].account.toLowerCase();
+                receiveGlobal = Number(allAccounts[i].cheque) + Number(amount);
+                rSavingsGlobal = allAccounts[i].savings;
+                rest.tempDelete(url, session, allAccounts[i].id, recipientGlobal, updateRecipientAccount);
+            }
+
+        }
     }
+
+)};
+
+
+function updateUserAccount(body, session, userGlobal){
+    rest.postChanges(url, userGlobal, chequeGlobal, savingsGlobal)
+    }
+
+function updateRecipientAccount(body, session, recipientGlobal){
+    rest.postChanges(url, recipientGlobal, receiveGlobal, rSavingsGlobal)        
+    }
+
