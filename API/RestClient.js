@@ -1,12 +1,12 @@
 var request = require('request');
 
-exports.getExchangeData = function getData(url, session, currency, callback){
+exports.getExchangeData = function getData(url, session, currency, amount, callback){
         request.get(url, function(err,res,body){
             if(err){
                 console.log(err);
             }else {
                 console.log('REST: ' + url + session + currency + callback)
-                callback(body, currency, session);
+                callback(body, currency, amount, session);
                 console.log('################');
                 console.log(body);
                 console.log('################');

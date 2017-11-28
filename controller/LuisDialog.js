@@ -31,12 +31,15 @@ exports.startDialog = function (bot) {
 
     bot.dialog('exchange', [ function (session, args) {
         session.sendTyping();
-        session.send('I can calculate exchange rates for you.')
         builder.Prompts.choice(session, "Here are the currencies that Contoso's exchange service currently supports:", "USD|CAD|AUD|JPY|CNY", { listStyle: 3 });
     },
     function (session, results) {
-        console.log(results.response.entity)
-        rates.exchange(results.response.entity, session);
+        session.conversationData["currency"] = results.response.entity;
+        builder.Prompts.number(session, "How much do you plan to exchange?");
+    },
+    function (session, results) {
+        session.sendTyping();
+        rates.exchange(session.conversationData["currency"], results.response, session);
     }]).triggerAction({
         matches: 'exchange'
     });
