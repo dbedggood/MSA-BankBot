@@ -1,5 +1,19 @@
 var request = require('request');
 
+exports.getExchangeData = function getData(url, session, currency, callback){
+        request.get(url, function(err,res,body){
+            if(err){
+                console.log(err);
+            }else {
+                console.log('REST: ' + url + session + currency + callback)
+                callback(body, currency, session);
+                console.log('################');
+                console.log(body);
+                console.log('################');
+            }
+        });
+    };
+
 exports.getAccBal = function getData(url, session, user, callback){
     request.get(url, {'headers':{'ZUMO-API-VERSION': '2.0.0'}}, function(err,res,body){
         if(err){
@@ -32,7 +46,7 @@ exports.tempDelete = function deleteData(url, session, id, user, callback){
 
 };
 
-exports.postChanges = function getData(url, user, cheque, savings){
+exports.postChanges = function postData(url, user, cheque, savings){
     var options = {
         url: url,
         method: 'POST',

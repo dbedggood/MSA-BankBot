@@ -1,6 +1,7 @@
 var builder = require('botbuilder');
 var analysis = require('./TextAnalytics');
-var money = require('./HandleMoney')
+var money = require('./HandleMoney');
+var rates = require('./ExchangeRate');
 
 var analyse = function(session, reply) {
     analysis(session.message.text, function(result) {
@@ -8,7 +9,7 @@ var analyse = function(session, reply) {
             session.send(reply);
         } else {
             var msg = new builder.Message(session)
-            .text('I\'m sorry if you are upset, would you like me to direct you to live support?')
+            .text('I\'m sorry if you are upset, would you like me to direct you to Contoso customer service?')
             .suggestedActions(
                 builder.SuggestedActions.create(
                         session, [
@@ -28,12 +29,16 @@ exports.startDialog = function (bot) {
     bot.recognizer(recognizer);
 
 
-    bot.dialog('greet', function (session, args) {
+    bot.dialog('exchange', [ function (session, args) {
         session.sendTyping();
-        var reply = 'Hello!';
-        analyse(session, reply);    
-    }).triggerAction({
-        matches: 'greet'
+        session.send('I can calculate exchange rates for you.')
+        builder.Prompts.choice(session, "Here are the currencies that Contoso's exchange service currently supports:", "USD|CAD|AUD|JPY|CNY", { listStyle: 3 });
+    },
+    function (session, results) {
+        console.log(results.response.entity)
+        rates.exchange(results.response.entity, session);
+    }]).triggerAction({
+        matches: 'exchange'
     });
 
 
@@ -49,6 +54,13 @@ exports.startDialog = function (bot) {
         matches: 'negative'
     });
 
+    bot.dialog('greet', function (session, args) {
+        session.sendTyping();
+        var reply = 'Hello!';
+        analyse(session, reply);    
+    }).triggerAction({
+        matches: 'greet'
+    });
 
     bot.dialog('checkBalance', [ function (session, args, next) {
         session.sendTyping();
