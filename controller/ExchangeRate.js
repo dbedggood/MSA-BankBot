@@ -2,7 +2,6 @@ var rest = require('../API/RestClient');
 
 exports.exchange = function getExchange(currency, amount, session){
   var url = "https://api.fixer.io/latest?base=NZD&symbols=NZD," + currency;
-  console.log(url);
   rest.getExchangeData(url, session, currency, amount, getCurrency);
 }
 

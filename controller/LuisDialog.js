@@ -90,16 +90,24 @@ exports.startDialog = function (bot) {
 
     bot.dialog('forgotPassword', function (session, args) {
         session.sendTyping();
-        var reply = 'Do you want to reset your password?!';
+        var reply = 'Do you want to reset your password?';
         analyse(session, reply);
     }).triggerAction({
         matches: 'forgotPassword'
     });
 
-    bot.dialog('requestSupport', function (session, args) {
+    bot.dialog('requestSupport', [ function (session, args) {
         session.sendTyping();
-        session.send('Fetching live support...');
-    }).triggerAction({
+        builder.Prompts.choice(session, "Have you checked our FAQ?", "Yes|No", { listStyle: 3 });
+
+    },
+    function (session, results) {
+        if (results.response.entity === "Yes") {
+            session.send('Fetching Contoso customer service, one moment please.')
+        } else {
+            session.send('Please check it out on our website!')
+        } 
+    }]).triggerAction({
         matches: 'requestSupport'
     });
 
@@ -111,59 +119,59 @@ exports.startDialog = function (bot) {
         matches: 'farewell'
     });
 
-        bot.dialog('transferMoney', [ function (session, args, next) {
-            session.sendTyping();
-            session.dialogData.args = args || {};
-            if (!session.conversationData["username"]) {
-                builder.Prompts.text(session, "Enter a username to login to your account.");                
-            } else {
-                session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
-                next();
-            }
-        },
-        function (session, results) {
-            if (results.response) {
-                session.conversationData["username"] = results.response;
-            }
-            builder.Prompts.choice(session, "Which account do you want to transfer to?", "Cheque|Savings", { listStyle: 3 });
-        },
-        function (session, results) {
-            session.conversationData["accountType"] = results.response.entity;
-            builder.Prompts.number(session, "How much would you like to transfer?");
-        },
-        function (session, results) {
-            session.sendTyping();
-            session.send('Transferring $%d to your %s account...', results.response, session.conversationData["accountType"]);
-            money.transfer(session, session.conversationData["username"], results.response, session.conversationData["accountType"]);
-        }]).triggerAction({
-            matches: 'transferMoney'
-        });
+    bot.dialog('transferMoney', [ function (session, args, next) {
+        session.sendTyping();
+        session.dialogData.args = args || {};
+        if (!session.conversationData["username"]) {
+            builder.Prompts.text(session, "Enter a username to login to your account.");                
+        } else {
+            session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
+            next();
+        }
+    },
+    function (session, results) {
+        if (results.response) {
+            session.conversationData["username"] = results.response;
+        }
+        builder.Prompts.choice(session, "Which account do you want to transfer to?", "Cheque|Savings", { listStyle: 3 });
+    },
+    function (session, results) {
+        session.conversationData["accountType"] = results.response.entity;
+        builder.Prompts.number(session, "How much would you like to transfer?");
+    },
+    function (session, results) {
+        session.sendTyping();
+        session.send('Transferring $%d to your %s account...', results.response, session.conversationData["accountType"]);
+        money.transfer(session, session.conversationData["username"], results.response, session.conversationData["accountType"]);
+    }]).triggerAction({
+        matches: 'transferMoney'
+    });
 
-        bot.dialog('sendMoney', [ function (session, args, next) {
-            session.sendTyping();
-            session.dialogData.args = args || {};
-            if (!session.conversationData["username"]) {
-                builder.Prompts.text(session, "Enter a username to login to your account.");                
-            } else {
-                session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
-                next();
-            }
-        },
-        function (session, results) {
-            if (results.response) {
-                session.conversationData["username"] = results.response;
-            }
-            builder.Prompts.text(session, "Who do you want to send a payment to?");
-        },
-        function (session, results) {
-            session.conversationData["recipient"] = results.response;
-            builder.Prompts.number(session, "How much would you like to send?");
-        },
-        function (session, results) {
-            session.sendTyping();
-            session.send('Sending $%d to %s...', results.response, session.conversationData["recipient"]);
-            money.sendMoney(session, session.conversationData["username"], results.response, session.conversationData["recipient"]);
-        }]).triggerAction({
-            matches: 'sendMoney'
-        });
-    } 
+    bot.dialog('sendMoney', [ function (session, args, next) {
+        session.sendTyping();
+        session.dialogData.args = args || {};
+        if (!session.conversationData["username"]) {
+            builder.Prompts.text(session, "Enter a username to login to your account.");                
+        } else {
+            session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
+            next();
+        }
+    },
+    function (session, results) {
+        if (results.response) {
+            session.conversationData["username"] = results.response;
+        }
+        builder.Prompts.text(session, "Who do you want to send a payment to?");
+    },
+    function (session, results) {
+        session.conversationData["recipient"] = results.response;
+        builder.Prompts.number(session, "How much would you like to send?");
+    },
+    function (session, results) {
+        session.sendTyping();
+        session.send('Sending $%d to %s...', results.response, session.conversationData["recipient"]);
+        money.sendMoney(session, session.conversationData["username"], results.response, session.conversationData["recipient"]);
+    }]).triggerAction({
+        matches: 'sendMoney'
+    });
+}

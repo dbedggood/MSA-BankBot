@@ -26,15 +26,22 @@ bot.on('conversationUpdate', function (message) {
                 
                 var welc1 = new builder.Message()
                 .address(message.address)
-                .text('Welcome!')
+                .text('Welcome, I am Contoso Bot.')
                 bot.send(welc1);
-                
+
+                setTimeout(function(){
+                    var welc2 = new builder.Message()
+                    .address(message.address)
+                    .text('I can assist you in checking your balance, making transfers between accounts, sending payments, resetting your password and exchanging foreign currencies.')
+                    bot.send(welc2);
+                }, 2000);
+
                 setTimeout(function(){
                     var welc2 = new builder.Message()
                     .address(message.address)
                     .text('How can I help you today?')
                     bot.send(welc2);
-                }, 2000);
+                }, 5000);
             }
         });
     }

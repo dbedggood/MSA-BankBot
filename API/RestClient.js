@@ -5,11 +5,7 @@ exports.getExchangeData = function getData(url, session, currency, amount, callb
             if(err){
                 console.log(err);
             }else {
-                console.log('REST: ' + url + session + currency + callback)
                 callback(body, currency, amount, session);
-                console.log('################');
-                console.log(body);
-                console.log('################');
             }
         });
     };
@@ -36,7 +32,6 @@ exports.tempDelete = function deleteData(url, session, id, user, callback){
 
     request(options,function (err, res, body){
         if( !err && res.statusCode === 200){
-            console.log(body);
             callback(body, session, user);
         }else {
             console.log(err);
@@ -63,7 +58,7 @@ exports.postChanges = function postData(url, user, cheque, savings){
       
       request(options, function (error, response, body) {
         if (!error && response.statusCode === 200) {
-            console.log(body);
+            console.log('Done')
         }
         else{
             console.log(error);

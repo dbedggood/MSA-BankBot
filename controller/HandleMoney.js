@@ -36,30 +36,25 @@ function handleAccBalResponse(message, session, user) {
 
 exports.transfer = function transferMoney(session, user, amount, accountType){
     var url  = 'https://bnkbt.azurewebsites.net/tables/accounts';
-    console.log("TRANSFER begin");
+
     rest.getAccBal(url, session, user, function(message, session, user){
         var allAccounts = JSON.parse(message);
-        console.log("TRANSFER getdata");
-        console.log(accountType);
-
         for(var i in allAccounts) {
-            console.log('iterate accounts: ' + allAccounts[i].account);
-            console.log('input: ' + user);
-            console.log('accountType: ' + accountType)
+
             if (allAccounts[i].account.toLowerCase() === user.toLowerCase()) {
                 var chequeReceived = allAccounts[i].cheque;
                 var savingsReceived = allAccounts[i].savings;
                 userGlobal = allAccounts[i].account.toLowerCase();
-                if (accountType.toLowerCase() === 'cheque') {
-                    chequeGlobal = Number(chequeReceived) + Number(amount);
-                    savingsGlobal = savingsReceived - amount;
-                    console.log("ADDED TO CHEQUE");
-                } else {
-                    chequeGlobal = chequeReceived - amount;
-                    savingsGlobal = Number(savingsReceived) + Number(amount);
-                    console.log("ADDED TO SAVINGS");
-                }
-                rest.tempDelete(url, session, allAccounts[i].id, userGlobal, updateUserAccount);
+
+            if (accountType.toLowerCase() === 'cheque') {
+                chequeGlobal = Number(chequeReceived) + Number(amount);
+                savingsGlobal = savingsReceived - amount;
+        
+            } else {
+                chequeGlobal = chequeReceived - amount;
+                savingsGlobal = Number(savingsReceived) + Number(amount);
+            }
+            rest.tempDelete(url, session, allAccounts[i].id, userGlobal, updateUserAccount);
 
             }
         }
@@ -73,13 +68,8 @@ exports.sendMoney = function sendMoney(session, user, amount, recipient){
     console.log("SEND begin");
     rest.getAccBal(url, session, user, function(message, session, user){
         var allAccounts = JSON.parse(message);
-        console.log("TRANSFER getdata");
-        console.log(recipient);
 
         for(var i in allAccounts) {
-            console.log('iterate accounts: ' + allAccounts[i].account);
-            console.log('input: ' + user);
-            console.log('accountType: ' + recipient)
 
             if (allAccounts[i].account.toLowerCase() === user.toLowerCase()) {
                 userGlobal = allAccounts[i].account.toLowerCase();
@@ -101,10 +91,11 @@ exports.sendMoney = function sendMoney(session, user, amount, recipient){
 
 
 function updateUserAccount(body, session, userGlobal){
+    session.send('Transaction complete.')
     rest.postChanges(url, userGlobal, chequeGlobal, savingsGlobal)
     }
 
 function updateRecipientAccount(body, session, recipientGlobal){
+    session.send(recipientGlobal.charAt(0).toUpperCase() + recipientGlobal.slice(1) + ' has received your payment.')
     rest.postChanges(url, recipientGlobal, receiveGlobal, rSavingsGlobal)        
     }
-
