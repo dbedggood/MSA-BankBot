@@ -171,7 +171,7 @@ exports.startDialog = function (bot) {
 
     bot.dialog('exchange', [function (session, args) {
         session.sendTyping();
-        builder.Prompts.choice(session, "Here are the currencies that Contoso's exchange service currently supports:", "USD|CAD|AUD|JPY|CNY", { listStyle: 3 });
+        builder.Prompts.choice(session, "Here are the currencies that Contoso's exchange service currently supports:", "USD|EUR|AUD|JPY|CNY", { listStyle: 3 });
     },
     function (session, results) {
         session.conversationData["currency"] = results.response.entity;
