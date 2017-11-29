@@ -175,7 +175,7 @@ exports.startDialog = function (bot) {
     },
     function (session, results) {
         session.conversationData["currency"] = results.response.entity;
-        builder.Prompts.number(session, "How much do you plan to exchange?");
+        builder.Prompts.number(session, "How much NZD do you plan to exchange?");
     },
     function (session, results) {
         session.sendTyping();
