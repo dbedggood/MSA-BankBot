@@ -3,26 +3,24 @@ var analysis = require('./TextAnalytics');
 var money = require('./HandleMoney');
 var rates = require('./ExchangeRate');
 
-var analyse = function(session, reply) {
-    analysis(session.message.text, function(result) {
+var analyse = function (session, reply) {
+    analysis(session.message.text, function (result) {
         if (result > 0.3) {
             session.send(reply);
         } else {
             var msg = new builder.Message(session)
-            .text('I\'m sorry if you are upset, would you like me to direct you to Contoso customer service?')
-            .suggestedActions(
+                .text('I\'m sorry if you are upset, would you like me to direct you to Contoso customer service?')
+                .suggestedActions(
                 builder.SuggestedActions.create(
-                        session, [
-                            builder.CardAction.postBack(session, "I need help", "Yes"),
-                            builder.CardAction.postBack(session, "no", "No"),
-                        ]
-                    ));
+                    session, [
+                        builder.CardAction.postBack(session, "I need help", "Yes"),
+                        builder.CardAction.postBack(session, "no", "No"),
+                    ]
+                ));
             session.send(msg);
         }
     })
 }
-
-exports.analyse;
 
 exports.startDialog = function (bot) {
 
@@ -30,20 +28,21 @@ exports.startDialog = function (bot) {
 
     bot.recognizer(recognizer);
 
+    bot.dialog('greet', function (session, args) {
+        session.sendTyping();
+        var reply = 'Hello!';
+        analyse(session, reply);
+    }).triggerAction({
+        matches: 'greet'
+    });
 
-    bot.dialog('exchange', [ function (session, args) {
+
+    bot.dialog('farewell', function (session, args) {
         session.sendTyping();
-        builder.Prompts.choice(session, "Here are the currencies that Contoso's exchange service currently supports:", "USD|CAD|AUD|JPY|CNY", { listStyle: 3 });
-    },
-    function (session, results) {
-        session.conversationData["currency"] = results.response.entity;
-        builder.Prompts.number(session, "How much do you plan to exchange?");
-    },
-    function (session, results) {
-        session.sendTyping();
-        rates.exchange(session.conversationData["currency"], results.response, session);
-    }]).triggerAction({
-        matches: 'exchange'
+        var reply = 'Goodbye!';
+        analyse(session, reply)
+    }).triggerAction({
+        matches: 'farewell'
     });
 
 
@@ -59,46 +58,44 @@ exports.startDialog = function (bot) {
         matches: 'negative'
     });
 
-    bot.dialog('greet', function (session, args) {
-        session.sendTyping();
-        var reply = 'Hello!';
-        analyse(session, reply);    
-    }).triggerAction({
-        matches: 'greet'
-    });
 
-    bot.dialog('checkBalance', [ function (session, args, next) {
+    bot.dialog('checkBalance', [function (session, args, next) {
         session.sendTyping();
         session.dialogData.args = args || {};
         if (!session.conversationData["username"]) {
-            builder.Prompts.text(session, "Enter a username to login to your account.");                
+            builder.Prompts.text(session, "Enter a username to login to your account.");
         } else {
             session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
             next();
         }
     },
     function (session, results) {
-
         if (results.response) {
             session.conversationData["username"] = results.response;
         }
         session.send("Retrieving your account balances...");
         money.displayAccBal(session, session.conversationData["username"]);
-
     }]).triggerAction({
         matches: 'checkBalance'
     });
 
 
-    bot.dialog('forgotPassword', function (session, args) {
+    bot.dialog('forgotPassword', [function (session, args) {
         session.sendTyping();
-        var reply = 'Do you want to reset your password?';
-        analyse(session, reply);
-    }).triggerAction({
+        builder.Prompts.choice(session, "Do you want to reset your password?", "Yes|No", { listStyle: 3 });
+    },
+    function (session, results) {
+        if (results.response.entity === "Yes") {
+            session.send('You have been sent an email with a link to reset your password.')
+        } else {
+            session.send('Okay.')
+        }
+    }]).triggerAction({
         matches: 'forgotPassword'
     });
 
-    bot.dialog('requestSupport', [ function (session, args) {
+
+    bot.dialog('requestSupport', [function (session, args) {
         session.sendTyping();
         builder.Prompts.choice(session, "Have you checked our FAQ?", "Yes|No", { listStyle: 3 });
 
@@ -108,24 +105,17 @@ exports.startDialog = function (bot) {
             session.send('Fetching Contoso customer service, one moment please.')
         } else {
             session.send('Please check it out on our website!')
-        } 
+        }
     }]).triggerAction({
         matches: 'requestSupport'
     });
 
-    bot.dialog('farewell', function (session, args) {
-        session.sendTyping();
-        var reply = 'Goodbye!';
-        analyse(session, reply)
-    }).triggerAction({
-        matches: 'farewell'
-    });
 
-    bot.dialog('transferMoney', [ function (session, args, next) {
+    bot.dialog('transferMoney', [function (session, args, next) {
         session.sendTyping();
         session.dialogData.args = args || {};
         if (!session.conversationData["username"]) {
-            builder.Prompts.text(session, "Enter a username to login to your account.");                
+            builder.Prompts.text(session, "Enter a username to login to your account.");
         } else {
             session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
             next();
@@ -149,11 +139,12 @@ exports.startDialog = function (bot) {
         matches: 'transferMoney'
     });
 
-    bot.dialog('sendMoney', [ function (session, args, next) {
+
+    bot.dialog('sendMoney', [function (session, args, next) {
         session.sendTyping();
         session.dialogData.args = args || {};
         if (!session.conversationData["username"]) {
-            builder.Prompts.text(session, "Enter a username to login to your account.");                
+            builder.Prompts.text(session, "Enter a username to login to your account.");
         } else {
             session.send('Sure thing, %s!', session.conversationData["username"].charAt(0).toUpperCase() + session.conversationData["username"].slice(1))
             next();
@@ -175,5 +166,21 @@ exports.startDialog = function (bot) {
         money.sendMoney(session, session.conversationData["username"], results.response, session.conversationData["recipient"]);
     }]).triggerAction({
         matches: 'sendMoney'
+    });
+
+
+    bot.dialog('exchange', [function (session, args) {
+        session.sendTyping();
+        builder.Prompts.choice(session, "Here are the currencies that Contoso's exchange service currently supports:", "USD|CAD|AUD|JPY|CNY", { listStyle: 3 });
+    },
+    function (session, results) {
+        session.conversationData["currency"] = results.response.entity;
+        builder.Prompts.number(session, "How much do you plan to exchange?");
+    },
+    function (session, results) {
+        session.sendTyping();
+        rates.exchange(session.conversationData["currency"], results.response, session);
+    }]).triggerAction({
+        matches: 'exchange'
     });
 }
