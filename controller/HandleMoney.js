@@ -1,4 +1,5 @@
 var rest = require('../API/RestClient');
+var builder = require('botbuilder');
 
 var url = 'https://bnkbt.azurewebsites.net/tables/accounts'
 var userGlobal;
@@ -27,10 +28,12 @@ function handleAccBalResponse(message, session, user) {
       }        
   }
 
-  session.send(cBalance); 
-  setTimeout(function(){
-    session.send(sBalance)
-  }, 1500);
+    var card = new builder.HeroCard(session)
+    .title(user.charAt(0).toUpperCase() + user.slice(1) + '\'s Balances')
+    .text(cBalance + '\n\n' +sBalance);
+
+    var msg = new builder.Message(session).addAttachment(card);
+    session.send(msg);
 
 }
 
