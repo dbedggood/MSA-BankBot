@@ -1,6 +1,7 @@
 var restify = require('restify');
 var builder = require('botbuilder');
 var luis = require('./controller/LuisDialog');
+var analysis = require('./controller/TextAnalytics');
 
 var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function () {
@@ -16,8 +17,28 @@ server.post('/api/messages', connector.listen());
 
 var bot = new builder.UniversalBot(connector, function (session) {
     session.sendTyping();
-    session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+    var reply = 'Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.';
+    analyse(session, reply);  
 });
+
+var analyse = function(session, reply) {
+    analysis(session.message.text, function(result) {
+        if (result > 0.3) {
+            session.send(reply);
+        } else {
+            var msg = new builder.Message(session)
+            .text('I\'m sorry if you are upset, would you like me to direct you to Contoso customer service?')
+            .suggestedActions(
+                builder.SuggestedActions.create(
+                        session, [
+                            builder.CardAction.postBack(session, "I need help", "Yes"),
+                            builder.CardAction.postBack(session, "no", "No"),
+                        ]
+                    ));
+            session.send(msg);
+        }
+    })
+}
 
 bot.on('conversationUpdate', function (message) {
     if (message.membersAdded) {

@@ -22,6 +22,8 @@ var analyse = function(session, reply) {
     })
 }
 
+exports.analyse;
+
 exports.startDialog = function (bot) {
 
     var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/84985f51-d322-4b83-a441-b3f490c41e22?subscription-key=0ccd28813dc54c33a936be746348319f&verbose=true&timezoneOffset=720&q=');
